@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Pragati Interior Studio Design System */
+    --background: 210 10% 7%;
+    --foreground: 38 18% 88%;
+    
+    --card: 210 8% 11%;
+    --card-foreground: 38 18% 88%;
+    
+    --popover: 210 8% 11%;
+    --popover-foreground: 38 18% 88%;
+    
+    --primary: 340 45% 33%;
+    --primary-foreground: 38 18% 88%;
+    
+    --secondary: 210 8% 14%;
+    --secondary-foreground: 38 18% 88%;
+    
+    --muted: 210 8% 14%;
+    --muted-foreground: 38 8% 70%;
+    
+    --accent: 40 35% 59%;
+    --accent-foreground: 210 10% 7%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 38 18% 88%;
+    
+    --border: 210 8% 18%;
+    --input: 210 8% 18%;
+    --ring: 340 45% 33%;
+    
+    --radius: 0.25rem;
+    
+    /* Custom tokens */
+    --plum: 340 45% 33%;
+    --plum-dark: 340 50% 24%;
+    --brass: 40 35% 59%;
+    --ivory: 38 18% 88%;
+    --charcoal: 210 10% 7%;
+    --charcoal-light: 210 8% 11%;
+    
+    --sidebar-background: 210 8% 11%;
+    --sidebar-foreground: 38 18% 88%;
+    --sidebar-primary: 340 45% 33%;
+    --sidebar-primary-foreground: 38 18% 88%;
+    --sidebar-accent: 210 8% 14%;
+    --sidebar-accent-foreground: 38 18% 88%;
+    --sidebar-border: 210 8% 18%;
+    --sidebar-ring: 340 45% 33%;
+  }
+
+  /* Light mode theme */
+  .light {
+    --background: 38 25% 96%;
+    --foreground: 210 10% 12%;
+    
+    --card: 38 20% 98%;
+    --card-foreground: 210 10% 12%;
+    
+    --popover: 38 20% 98%;
+    --popover-foreground: 210 10% 12%;
+    
+    --primary: 340 45% 33%;
+    --primary-foreground: 38 18% 96%;
+    
+    --secondary: 38 15% 92%;
+    --secondary-foreground: 210 10% 12%;
+    
+    --muted: 38 15% 92%;
+    --muted-foreground: 210 8% 45%;
+    
+    --accent: 40 35% 45%;
+    --accent-foreground: 38 18% 96%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 38 18% 96%;
+    
+    --border: 38 15% 85%;
+    --input: 38 15% 85%;
+    --ring: 340 45% 33%;
+    
+    /* Custom tokens for light */
+    --plum: 340 45% 33%;
+    --plum-dark: 340 50% 24%;
+    --brass: 40 35% 45%;
+    --ivory: 210 10% 12%;
+    --charcoal: 38 25% 96%;
+    --charcoal-light: 38 20% 98%;
+    
+    --sidebar-background: 38 20% 98%;
+    --sidebar-foreground: 210 10% 12%;
+    --sidebar-primary: 340 45% 33%;
+    --sidebar-primary-foreground: 38 18% 96%;
+    --sidebar-accent: 38 15% 92%;
+    --sidebar-accent-foreground: 210 10% 12%;
+    --sidebar-border: 38 15% 85%;
+    --sidebar-ring: 340 45% 33%;
+  }
+
+  .dark {
+    --background: 210 10% 7%;
+    --foreground: 38 18% 88%;
+    --card: 210 8% 11%;
+    --card-foreground: 38 18% 88%;
+    --popover: 210 8% 11%;
+    --popover-foreground: 38 18% 88%;
+    --primary: 340 45% 33%;
+    --primary-foreground: 38 18% 88%;
+    --secondary: 210 8% 14%;
+    --secondary-foreground: 38 18% 88%;
+    --muted: 210 8% 14%;
+    --muted-foreground: 38 8% 70%;
+    --accent: 40 35% 59%;
+    --accent-foreground: 210 10% 7%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 38 18% 88%;
+    --border: 210 8% 18%;
+    --input: 210 8% 18%;
+    --ring: 340 45% 33%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    @apply font-light tracking-tight;
+  }
+}
+
+@layer components {
+  .editorial-heading {
+    font-family: 'Playfair Display', serif;
+    @apply font-light tracking-tight leading-tight;
+  }
+  
+  .body-text {
+    font-family: 'Inter', sans-serif;
+    @apply font-light tracking-wide leading-relaxed;
+  }
+  
+  .nav-link {
+    @apply relative text-foreground/80 hover:text-foreground transition-colors duration-300;
+  }
+  
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-px bg-accent scale-x-0 origin-right transition-transform duration-300;
+  }
+  
+  .nav-link:hover::after {
+    @apply scale-x-100 origin-left;
+  }
+  
+  .card-elevated {
+    @apply bg-card border border-border/50 transition-all duration-500;
+  }
+  
+  .card-elevated:hover {
+    @apply border-border shadow-lg shadow-primary/5;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-8 py-3.5 text-sm font-medium tracking-wider uppercase transition-all duration-300;
+  }
+  
+  .btn-primary:hover {
+    @apply bg-primary/90 shadow-lg shadow-primary/20;
+  }
+  
+  .btn-outline {
+    @apply border border-foreground/30 text-foreground px-8 py-3.5 text-sm font-medium tracking-wider uppercase transition-all duration-300;
+  }
+  
+  .btn-outline:hover {
+    @apply border-foreground/60 bg-foreground/5;
+  }
+  
+  .section-padding {
+    @apply py-24 md:py-32 lg:py-40;
+  }
+  
+  .container-editorial {
+    @apply max-w-7xl mx-auto px-6 md:px-12 lg:px-16;
+  }
+  
+  .text-plum {
+    color: hsl(var(--plum));
+  }
+  
+  .bg-plum {
+    background-color: hsl(var(--plum));
+  }
+  
+  .text-brass {
+    color: hsl(var(--brass));
+  }
+  
+  .text-ivory {
+    color: hsl(var(--ivory));
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.7s ease-out forwards;
+  }
+  
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
