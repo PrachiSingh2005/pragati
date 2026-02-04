@@ -3,6 +3,7 @@ import { getImageUrl } from "@/lib/imageUtils";
 
 export interface BlogPost {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
   content: string;
@@ -28,32 +29,65 @@ interface BlogContextType {
 
 const defaultPosts: BlogPost[] = [];
 
-const defaultCategories = ["All", "Design Trends", "Materials", "Tips & Tricks", "Project Stories"];
-
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
 
 export const BlogProvider = ({ children }: { children: ReactNode }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const [categories, setCategories] = useState<string[]>(["All"]); // Start with just "All", will be populated from posts
 
   const fetchBlogs = () => {
     fetch(`${import.meta.env.VITE_API_URL}/blogs`)
       .then(res => res.json())
       .then(data => {
-        const transformed = data.map((b: any) => ({
-          id: b.id.toString(),
-          title: b.title,
-          slug: b.slug,
-          excerpt: b.excerpt,
-          content: b.content,
-          author: b.author,
-          images: b.image_url ? [getImageUrl(b.image_url)] : [],
-          category: b.category,
-          is_published: b.is_published === 1 || b.is_published === true || b.is_published === "1",
-          published_at: b.published_at || "",
-          created_at: b.created_at || ""
-        }));
+        const transformed = data.map((b: any) => {
+          let imageArray: string[] = [];
+
+          // Try to parse images column (JSON array)
+          if (b.images) {
+            try {
+              const parsed = JSON.parse(b.images);
+              if (Array.isArray(parsed)) {
+                imageArray = parsed.map((img: string) => getImageUrl(img));
+              }
+            } catch (e) {
+              // Not valid JSON, ignore
+            }
+          }
+
+          // Fallback to image_url if no images array
+          if (imageArray.length === 0 && b.image_url) {
+            imageArray = [getImageUrl(b.image_url)];
+          }
+
+          return {
+            id: b.id.toString(),
+            title: b.title,
+            slug: b.slug,
+            excerpt: b.excerpt,
+            content: b.content,
+            author: b.author,
+            images: imageArray,
+            category: b.category,
+            is_published: b.is_published === 1 || b.is_published === true || b.is_published === "1",
+            published_at: b.published_at || "",
+            created_at: b.created_at || ""
+          };
+        });
         setPosts(transformed);
+
+        // Extract unique categories from posts
+        const uniqueCategories = new Set<string>();
+        transformed.forEach((post: BlogPost) => {
+          if (post.category) {
+            uniqueCategories.add(post.category);
+          }
+        });
+
+        // Always include "All" at the beginning, then add unique categories from posts
+        const dynamicCategories = ["All", ...Array.from(uniqueCategories).sort()];
+        setCategories(dynamicCategories);
+
+        console.log('📂 Categories updated:', dynamicCategories);
       })
       .catch(err => console.error("Failed to fetch blogs", err));
   };
@@ -66,6 +100,24 @@ export const BlogProvider = ({ children }: { children: ReactNode }) => {
     // Generate simple slug if not provided/auto-generated
     const slug = post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
+    // Strip any URL prefixes to get just the filename
+    const rawImages = post.images ? post.images.map(img => {
+      // Remove various possible URL prefixes
+      let cleaned = img
+        .replace(`${import.meta.env.VITE_API_URL}/assets/`, '')
+        .replace(`${import.meta.env.VITE_API_URL.replace('/api', '')}/assets/`, '')
+        .replace('http://localhost:5000/assets/', '')
+        .replace('/assets/', '');
+      return cleaned;
+    }) : [];
+
+    console.log('🔍 Adding blog post:', {
+      title: post.title,
+      originalImages: post.images,
+      cleanedImages: rawImages,
+      imagesJSON: JSON.stringify(rawImages)
+    });
+
     fetch(`${import.meta.env.VITE_API_URL}/blogs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,14 +128,18 @@ export const BlogProvider = ({ children }: { children: ReactNode }) => {
         content: post.content,
         author: post.author,
         category: post.category,
-        image_url: post.images && post.images.length > 0 ? post.images[0].replace('/assets/', '') : '',
+        image_url: rawImages.length > 0 ? rawImages[0] : '',
+        images: JSON.stringify(rawImages),
         is_published: post.is_published ? 1 : 0,
         published_at: post.published_at
       })
     })
       .then(res => res.json())
-      .then(() => fetchBlogs())
-      .catch(err => console.error("Error creating blog", err));
+      .then((data) => {
+        console.log('✅ Blog post created:', data);
+        fetchBlogs();
+      })
+      .catch(err => console.error("❌ Error creating blog", err));
   };
 
   const updatePost = (id: string, updates: Partial<BlogPost>) => {
@@ -97,7 +153,20 @@ export const BlogProvider = ({ children }: { children: ReactNode }) => {
     if (updates.category) payload.category = updates.category;
     if (updates.author) payload.author = updates.author;
     if (updates.is_published !== undefined) payload.is_published = updates.is_published ? 1 : 0;
-    if (updates.images && updates.images.length > 0) payload.image_url = updates.images[0].replace('/assets/', '');
+
+    if (updates.images !== undefined) {
+      const rawImages = updates.images.map(img => {
+        // Remove various possible URL prefixes
+        let cleaned = img
+          .replace(`${import.meta.env.VITE_API_URL}/assets/`, '')
+          .replace(`${import.meta.env.VITE_API_URL.replace('/api', '')}/assets/`, '')
+          .replace('http://localhost:5000/assets/', '')
+          .replace('/assets/', '');
+        return cleaned;
+      });
+      payload.image_url = rawImages.length > 0 ? rawImages[0] : '';
+      payload.images = JSON.stringify(rawImages);
+    }
 
     fetch(`${import.meta.env.VITE_API_URL}/blogs/${id}`, {
       method: 'PUT',

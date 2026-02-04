@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -7,15 +8,16 @@ interface PrivateRouteProps {
 
 const PrivateRoute = ({ children, requireAdmin = false }: PrivateRouteProps) => {
   const location = useLocation();
-  
-  // Check mock auth from localStorage
-  const isAuthenticated = localStorage.getItem("mockAdminAuth") === "true";
+  const { user, isLoading } = useAuth(); // Use context instead of localStorage
 
-  if (!isAuthenticated) {
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  // For mock auth, all authenticated users are admins
   return <>{children}</>;
 };
 

@@ -19,11 +19,33 @@ const Portfolio = () => {
     fetch(`${import.meta.env.VITE_API_URL}/portfolio`)
       .then(res => res.json())
       .then(data => {
-        setProjects(data);
+        // Fix image paths - prepend backend URL if strictly a filename
+        const baseUrl = new URL(import.meta.env.VITE_API_URL).origin;
+
+        const fixedData = data.map((project: any) => {
+          const fixedImages = Array.isArray(project.images)
+            ? project.images.map((img: string) => {
+              if (img.startsWith('http')) return img;
+              // If it likely implies a relative path without /assets prefix, add it
+              const cleanImg = img.startsWith('/') ? img.slice(1) : img;
+              // Check if it already includes 'assets/'
+              if (cleanImg.startsWith('assets/')) return `${baseUrl}/${cleanImg}`;
+              return `${baseUrl}/assets/${cleanImg}`;
+            })
+            : [];
+
+          return {
+            ...project,
+            images: fixedImages
+          };
+        });
+
+        setProjects(fixedData);
         setLoading(false);
       })
       .catch(err => {
         console.error("Failed to fetch portfolio:", err);
+        setProjects([]); // Ensure valid state on error
         setLoading(false);
       });
   }, []);
@@ -57,7 +79,7 @@ const Portfolio = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="pt-24 md:pt-32">
+      <main className="pt-20">
         <section ref={sectionRef} className="section-padding">
           <div className="container-editorial">
             <div className={`mb-12 md:mb-16 ${isVisible ? 'animate-fade-up' : 'opacity-0'}`}>

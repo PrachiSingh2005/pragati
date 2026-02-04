@@ -32,12 +32,33 @@ export const ServicesProvider = ({ children }: { children: ReactNode }) => {
       .then(res => res.json())
       .then(data => {
         // Transform data
-        const transformedData = data.map((s: any) => ({
-          ...s,
-          // DB uses is_active (0 or 1), frontend expects boolean
-          is_active: s.is_active === 1 || s.is_active === true || s.is_active === "1",
-          images: s.image_url ? [getImageUrl(s.image_url)] : []
-        }));
+        const transformedData = data.map((s: any) => {
+          let parsedImages: string[] = [];
+
+          // Try parsing 'images' column if it exists
+          if (s.images) {
+            try {
+              const parsed = JSON.parse(s.images);
+              if (Array.isArray(parsed)) {
+                parsedImages = parsed.map((img: string) => getImageUrl(img));
+              }
+            } catch (e) {
+              // Ignore parsing error
+            }
+          }
+
+          // Fallback to image_url if images array is empty
+          if (parsedImages.length === 0 && s.image_url) {
+            parsedImages = [getImageUrl(s.image_url)];
+          }
+
+          return {
+            ...s,
+            // DB uses is_active (0 or 1), frontend expects boolean
+            is_active: s.is_active === 1 || s.is_active === true || s.is_active === "1",
+            images: parsedImages
+          };
+        });
         setServices(transformedData);
         setLoading(false);
       })
@@ -48,10 +69,14 @@ export const ServicesProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const addService = (service: Omit<Service, "id" | "display_order">) => {
+    // Process images: ensure no full URLs, just filenames/relative paths
+    const rawImages = service.images ? service.images.map(img => img.replace(`${import.meta.env.VITE_API_URL}/assets/`, '').replace('/assets/', '')) : [];
+
     const dbService = {
       title: service.title,
       description: service.description,
-      image_url: service.images && service.images.length > 0 ? service.images[0].replace('/assets/', '') : '',
+      image_url: rawImages.length > 0 ? rawImages[0] : '', // Legacy column support
+      images: JSON.stringify(rawImages), // New column support
       display_order: services.length + 1,
       is_active: 1 // Explicitly active by default
     };
@@ -63,11 +88,14 @@ export const ServicesProvider = ({ children }: { children: ReactNode }) => {
     })
       .then(res => res.json())
       .then(newService => {
+        // The endpoint returns the created object including what we sent
+        // We need to make sure we store it in local state with full URLs for display
         const s: Service = {
           ...newService,
           id: newService.id.toString(),
-          is_active: true, // Optimistic update
-          images: newService.image_url ? [getImageUrl(newService.image_url)] : []
+          is_active: true,
+          // Re-hydrate images for frontend use
+          images: rawImages.map(img => getImageUrl(img))
         };
         setServices(prev => [...prev, s]);
       })
@@ -78,9 +106,10 @@ export const ServicesProvider = ({ children }: { children: ReactNode }) => {
     const dbUpdates: any = { ...updates };
 
     // Handle specific field transformations
-    if (updates.images && updates.images.length > 0) {
-      dbUpdates.image_url = updates.images[0].replace('/assets/', '');
-      delete dbUpdates.images;
+    if (updates.images) {
+      const rawImages = updates.images.map(img => img.replace(`${import.meta.env.VITE_API_URL}/assets/`, '').replace('/assets/', ''));
+      dbUpdates.image_url = rawImages.length > 0 ? rawImages[0] : '';
+      dbUpdates.images = JSON.stringify(rawImages);
     }
 
     // If updating visibility, convert to DB format (1/0)

@@ -37,49 +37,72 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// Login Admin
+// Login Admin (Real Database Authentication)
 router.post('/login', async (req, res) => {
     try {
-        const db = await getDb();
         const { email, password } = req.body;
 
+        // Validate input
         if (!email || !password) {
-            console.log('[Login Attempt] Missing email or password');
+            console.log('[Login] Missing email or password');
             return res.status(400).json({ error: 'Email and password are required' });
         }
 
-        console.log(`[Login Attempt] Email: ${email}`);
+        console.log(`[Login] Attempt for email: ${email}`);
 
-        // Normalize email
-        const normalizedEmail = email.toLowerCase().trim();
-        const admin = await db.get('SELECT * FROM admins WHERE email = ?', normalizedEmail);
+        // Get database connection
+        const db = await getDb();
 
-        console.log(`[Login Attempt] DB Result:`, admin ? 'Found User' : 'User Not Found');
+        // Fetch admin by email
+        const admin = await db.get(
+            'SELECT * FROM administrators WHERE email = ?',
+            [email.toLowerCase().trim()]
+        );
 
+        // Check if admin exists
         if (!admin) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            console.log(`[Login] Admin not found: ${email}`);
+            return res.status(401).json({ error: 'Admin not found' });
         }
 
-        const isValid = await bcrypt.compare(password, admin.password_hash);
-        console.log(`[Login Attempt] Password Valid: ${isValid}`);
+        console.log(`[Login] Admin found: ${admin.email} (ID: ${admin.id})`);
 
-        if (!isValid) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, admin.password_hash);
+
+        if (!isPasswordValid) {
+            console.log(`[Login] Incorrect password for: ${email}`);
+            return res.status(401).json({ error: 'Incorrect password' });
         }
+
+        console.log(`[Login] Password verified for: ${email}`);
+
+        // Create JWT token
+        const tokenPayload = {
+            id: admin.id,
+            email: admin.email,
+            role: 'admin'
+        };
 
         const token = jwt.sign(
-            { id: admin.id, email: admin.email, role: 'admin' },
+            tokenPayload,
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
+        console.log(`[Login] Success! Token generated for: ${email}`);
+
+        // Return success response
         res.json({
-            user: { id: admin.id, email: admin.email },
+            user: {
+                id: admin.id,
+                email: admin.email
+            },
             token
         });
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('[Login] Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

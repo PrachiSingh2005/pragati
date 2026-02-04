@@ -14,7 +14,16 @@ const createGetHandler = (tableName: string, orderBy?: string) => {
     return async (req: any, res: any) => {
         try {
             const db = await getDb();
-            const query = `SELECT * FROM ${tableName} ${orderBy ? `ORDER BY ${orderBy}` : ''}`;
+            let query = `SELECT * FROM ${tableName}`;
+            const limit = req.query.limit ? parseInt(req.query.limit as string) : null;
+
+            if (orderBy) {
+                query += ` ORDER BY ${orderBy}`;
+            }
+            if (limit && !isNaN(limit)) {
+                query += ` LIMIT ${limit}`;
+            }
+
             const data = await db.all(query);
             res.json(data);
         } catch (error) {
@@ -106,6 +115,8 @@ const createDeleteHandler = (tableName: string) => {
     };
 };
 
+// ... (existing code) ...
+
 // Navbar
 router.get('/navbar', createGetHandler('navbar_links', 'display_order'));
 
@@ -128,26 +139,36 @@ router.put('/hero', async (req, res) => {
     }
 });
 
-
 // Services
 router.get('/services', createGetHandler('services', 'display_order'));
 router.post('/services', createPostHandler('services'));
 router.put('/services/:id', createPutHandler('services'));
 router.delete('/services/:id', createDeleteHandler('services'));
 
+// Blogs
+router.get('/blogs', createGetHandler('blogs', 'created_at DESC'));
+router.post('/blogs', createPostHandler('blogs'));
+router.put('/blogs/:id', createPutHandler('blogs'));
+router.delete('/blogs/:id', createDeleteHandler('blogs'));
+
 // Public Portfolio (Active Only)
 router.get('/portfolio', async (req, res) => {
     try {
         const db = await getDb();
-        // Join with portfolio_categories to get category name
-        // Filter by is_active = 1
-        const query = `
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : null;
+
+        let query = `
             SELECT p.*, c.name as category_name 
             FROM projects p 
             LEFT JOIN portfolio_categories c ON p.category_id = c.id 
             WHERE p.is_active = 1
             ORDER BY display_order
         `;
+
+        if (limit && !isNaN(limit)) {
+            query += ` LIMIT ${limit}`;
+        }
+
         const data = await db.all(query);
 
         // Map category_name back to category for frontend compatibility

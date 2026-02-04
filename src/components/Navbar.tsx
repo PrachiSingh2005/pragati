@@ -28,7 +28,8 @@ const Navbar = () => {
     fetch(`${import.meta.env.VITE_API_URL}/navbar`)
       .then(res => res.json())
       .then(data => {
-        setNavLinks(data);
+        // Use data as is
+        setNavLinks(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
@@ -36,10 +37,11 @@ const Navbar = () => {
         // Fallback to default links if API fails
         setNavLinks([
           { name: "Home", href: "/" },
+          { name: "About Us", href: "/about" },
           { name: "Portfolio", href: "/portfolio" },
           { name: "Services", href: "/services" },
           { name: "Blog", href: "/blog" },
-          { name: "About Us", href: "/about" },
+          { name: "Contact", href: "/contact" },
         ]);
         setLoading(false);
       });
@@ -79,8 +81,14 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
             <Link
-              to="/about"
+              to="/contact"
               className="btn-primary text-xs"
+              onClick={() => {
+                // Smooth scroll to form after navigation
+                setTimeout(() => {
+                  document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
             >
               Start a Project
             </Link>
@@ -119,8 +127,14 @@ const Navbar = () => {
               ))}
               <div className="pt-4 border-t border-border/30">
                 <Link
-                  to="/about"
+                  to="/contact"
                   className="btn-primary text-xs text-center block"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setTimeout(() => {
+                      document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
                 >
                   Start a Project
                 </Link>

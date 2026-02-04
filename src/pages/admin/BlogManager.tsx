@@ -20,21 +20,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Plus, Eye, EyeOff, Upload, X, Calendar, 
-  Pencil, Trash2, User 
+import {
+  Plus, Eye, EyeOff, Upload, X, Calendar,
+  Pencil, Trash2, User
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useBlog } from "@/contexts/BlogContext";
 
 const BlogManager = () => {
-  const { 
-    posts, 
-    categories, 
-    addPost, 
+  const {
+    posts,
+    categories,
+    addPost,
     updatePost,
-    deletePost, 
-    togglePublished 
+    deletePost,
+    togglePublished,
+    addCategory
   } = useBlog();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,16 +74,36 @@ const BlogManager = () => {
     const files = e.target.files;
     if (files) {
       Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64String = reader.result as string;
-          setImagePreviews((prev) => [...prev, base64String]);
-          setFormData((prev) => ({
-            ...prev,
-            images: [...prev.images, base64String],
-          }));
-        };
-        reader.readAsDataURL(file);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+          method: 'POST',
+          body: formData
+        })
+          .then(res => {
+            if (!res.ok) throw new Error("Upload failed");
+            return res.json();
+          })
+          .then(data => {
+            const assetPath = `/assets/${data.filePath}`;
+            // Construct full URL for preview
+            const fullUrl = `${import.meta.env.VITE_API_URL.replace('/api', '')}${assetPath}`;
+
+            setImagePreviews(prev => [...prev, fullUrl]);
+            setFormData(prev => ({
+              ...prev,
+              images: [...prev.images, fullUrl] // Store full URL temporarily, Context cleans it up
+            }));
+          })
+          .catch(err => {
+            console.error("Image upload failed", err);
+            toast({
+              title: "Upload Error",
+              description: "Failed to upload image.",
+              variant: "destructive"
+            });
+          });
       });
     }
   };
@@ -204,21 +225,36 @@ const BlogManager = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categoryOptions.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoryOptions.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newCat = prompt("Enter new category name:");
+                        if (newCat) {
+                          addCategory(newCat);
+                          setFormData(prev => ({ ...prev, category: newCat }));
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -298,7 +334,7 @@ const BlogManager = () => {
                   <Switch
                     id="published"
                     checked={formData.is_published}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setFormData((prev) => ({ ...prev, is_published: checked }))
                     }
                   />
@@ -325,9 +361,8 @@ const BlogManager = () => {
             {posts.map((post) => (
               <Card
                 key={post.id}
-                className={`border-border/50 transition-all ${
-                  post.is_published ? "border-l-4 border-l-accent" : "opacity-60"
-                }`}
+                className={`border-border/50 transition-all ${post.is_published ? "border-l-4 border-l-accent" : "opacity-60"
+                  }`}
               >
                 <CardContent className="py-5">
                   <div className="flex items-start justify-between gap-4">

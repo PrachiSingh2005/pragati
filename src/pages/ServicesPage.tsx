@@ -10,7 +10,7 @@ const ServicesPage = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const { getActiveServices } = useServices();
-  
+
   const services = getActiveServices();
 
   // Intersection observer for animations
@@ -34,8 +34,8 @@ const ServicesPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <main className="pt-24 md:pt-32">
+
+      <main className="pt-20">
         <section ref={sectionRef} className="section-padding">
           <div className="container-editorial">
             <div className={`mb-12 md:mb-16 ${isVisible ? 'animate-fade-up' : 'opacity-0'}`}>
@@ -43,7 +43,7 @@ const ServicesPage = () => {
                 Our Services
               </h1>
               <p className="body-text text-muted-foreground max-w-2xl">
-                From concept to completion, we offer comprehensive interior design services 
+                From concept to completion, we offer comprehensive interior design services
                 tailored to bring your vision to life with precision and artistry.
               </p>
             </div>
@@ -66,8 +66,8 @@ const ServicesPage = () => {
                     {/* Service Image Carousel */}
                     {service.images && service.images.length > 0 && (
                       <div className="relative">
-                        <ImageCarousel 
-                          images={service.images} 
+                        <ImageCarousel
+                          images={service.images}
                           alt={service.title}
                           aspectRatio="aspect-[4/3]"
                         />
@@ -78,7 +78,7 @@ const ServicesPage = () => {
                     <div className="absolute inset-0 rounded-sm opacity-0 group-hover:opacity-100 
                       transition-opacity duration-[400ms] pointer-events-none
                       bg-gradient-to-b from-foreground/[0.02] to-transparent" />
-                    
+
                     <div className="relative z-10 p-8 md:p-10">
                       <h3 className="editorial-heading text-xl md:text-2xl mb-4 text-foreground
                         transition-all duration-300 ease-out

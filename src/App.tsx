@@ -14,7 +14,9 @@ import Index from "./pages/Index";
 import Portfolio from "./pages/Portfolio";
 import ServicesPage from "./pages/ServicesPage";
 import AboutUs from "./pages/AboutUs";
+import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
+import BlogDetail from "./pages/BlogDetail";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -39,69 +41,71 @@ const App = () => (
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/portfolio" element={<Portfolio />} />
-                  <Route path="/services" element={<ServicesPage />} />
-                  <Route path="/about" element={<AboutUs />} />
-                  <Route path="/blog" element={<Blog />} />
+                    <Routes>
+                      {/* Public routes */}
+                      <Route path="/" element={<Index />} />
+                      <Route path="/portfolio" element={<Portfolio />} />
+                      <Route path="/services" element={<ServicesPage />} />
+                      <Route path="/about" element={<AboutUs />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/blog" element={<Blog />} />
+                      <Route path="/blog/:slug" element={<BlogDetail />} />
 
-                  {/* Admin routes */}
-                  <Route path="/admin/login" element={<Login />} />
-                  <Route
-                    path="/admin/dashboard"
-                    element={
-                      <PrivateRoute requireAdmin>
-                        <Dashboard />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/services"
-                    element={
-                      <PrivateRoute requireAdmin>
-                        <ServicesManager />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/portfolio"
-                    element={
-                      <PrivateRoute requireAdmin>
-                        <PortfolioManager />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/contacts"
-                    element={
-                      <PrivateRoute requireAdmin>
-                        <ContactSubmissions />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/blog"
-                    element={
-                      <PrivateRoute requireAdmin>
-                        <BlogManager />
-                      </PrivateRoute>
-                    }
-                  />
-                  {/* Redirect old /admin to new dashboard */}
-                  <Route
-                    path="/admin"
-                    element={
-                      <PrivateRoute requireAdmin>
-                        <Dashboard />
-                      </PrivateRoute>
-                    }
-                  />
+                      {/* Admin routes */}
+                      <Route path="/admin/login" element={<Login />} />
+                      <Route
+                        path="/admin/dashboard"
+                        element={
+                          <PrivateRoute requireAdmin>
+                            <Dashboard />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/services"
+                        element={
+                          <PrivateRoute requireAdmin>
+                            <ServicesManager />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/portfolio"
+                        element={
+                          <PrivateRoute requireAdmin>
+                            <PortfolioManager />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/contacts"
+                        element={
+                          <PrivateRoute requireAdmin>
+                            <ContactSubmissions />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/blog"
+                        element={
+                          <PrivateRoute requireAdmin>
+                            <BlogManager />
+                          </PrivateRoute>
+                        }
+                      />
+                      {/* Redirect old /admin to new dashboard */}
+                      <Route
+                        path="/admin"
+                        element={
+                          <PrivateRoute requireAdmin>
+                            <Dashboard />
+                          </PrivateRoute>
+                        }
+                      />
 
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
                   </BrowserRouter>
                 </BlogProvider>
               </ContactSubmissionsProvider>

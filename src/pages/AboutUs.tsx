@@ -37,7 +37,7 @@ const AboutUs = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="pt-24 md:pt-32">
+      <main className="pt-20">
         {/* Hero Section with Full-Width Image */}
         <section className="relative h-[50vh] md:h-[60vh] overflow-hidden">
           <img

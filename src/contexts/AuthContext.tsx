@@ -48,78 +48,87 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
 
-      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
+const signIn = async (email: string, password: string) => {
+  try {
+    console.log('Signing in with:', email);
+    const url = `${import.meta.env.VITE_API_URL}/auth/login`;
+    console.log('Auth URL:', url);
 
-      const newSession = { user: data.user, token: data.token };
-      setSession(newSession);
-      setUser(data.user);
-      setIsAdmin(true);
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
 
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('authUser', JSON.stringify(data.user));
+    console.log('Login Response Status:', response.status);
+    const data = await response.json();
+    console.log('Login Response Data:', data);
 
-      return { error: null };
-    } catch (error: any) {
-      return { error };
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
     }
-  };
 
-  const signUp = async (email: string, password: string) => {
-    // This might be administrative or public, for now it hits the register endpoint
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+    const newSession = { user: data.user, token: data.token };
+    setSession(newSession);
+    setUser(data.user);
+    setIsAdmin(true);
 
-      const data = await response.json();
+    localStorage.setItem('authToken', data.token);
+    localStorage.setItem('authUser', JSON.stringify(data.user));
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
+    return { error: null };
+  } catch (error: any) {
+    console.error('SignIn Error:', error);
+    return { error };
+  }
+};
 
-      return { error: null };
-    } catch (error: any) {
-      return { error };
+const signUp = async (email: string, password: string) => {
+  // This might be administrative or public, for now it hits the register endpoint
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed');
     }
-  };
 
-  const signOut = async () => {
-    setUser(null);
-    setSession(null);
-    setIsAdmin(false);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-  };
+    return { error: null };
+  } catch (error: any) {
+    return { error };
+  }
+};
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        isAdmin,
-        isLoading,
-        signIn,
-        signUp,
-        signOut,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+const signOut = async () => {
+  setUser(null);
+  setSession(null);
+  setIsAdmin(false);
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('authUser');
+};
+
+return (
+  <AuthContext.Provider
+    value={{
+      user,
+      session,
+      isAdmin,
+      isLoading,
+      signIn,
+      signUp,
+      signOut,
+    }}
+  >
+    {children}
+  </AuthContext.Provider>
+);
 };
 
 export const useAuth = () => {
